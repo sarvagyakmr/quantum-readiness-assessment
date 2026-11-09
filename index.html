@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quantum Readiness Assessment</title>
+<style>
+:root{
+  --bg:#f6f6f3; --surface:#ffffff; --surface-2:#f0efea; --text:#1c1c1a; --muted:#66655f;
+  --border:#e2e0d9; --accent:#2c5a86; --accent-soft:#e4edf6; --accent-text:#ffffff;
+  --good:#2d7a4d; --good-soft:#e3f2e8; --warn:#a86b12; --warn-soft:#fbf0dc;
+  --bad:#ad3434; --bad-soft:#f8e3e3; --unk:#6a5aa8; --unk-soft:#ece8f7;
+  --shadow:0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#151614; --surface:#1e1f1c; --surface-2:#262723; --text:#ecebe6; --muted:#a3a29b;
+    --border:#33342f; --accent:#7fb0de; --accent-soft:#1f3245; --accent-text:#0f1a24;
+    --good:#6cc28f; --good-soft:#1c3326; --warn:#e0a650; --warn-soft:#3a2d17;
+    --bad:#e57b7b; --bad-soft:#3d2020; --unk:#a99be0; --unk-soft:#2b2640;
+    --shadow:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151614; --surface:#1e1f1c; --surface-2:#262723; --text:#ecebe6; --muted:#a3a29b;
+  --border:#33342f; --accent:#7fb0de; --accent-soft:#1f3245; --accent-text:#0f1a24;
+  --good:#6cc28f; --good-soft:#1c3326; --warn:#e0a650; --warn-soft:#3a2d17;
+  --bad:#e57b7b; --bad-soft:#3d2020; --unk:#a99be0; --unk-soft:#2b2640;
+  --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.brand{display:flex;flex-direction:column}
+.brand b{font-size:16px}
+.brand span{font-size:12px;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.btn{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:6px 11px;cursor:pointer;font-size:13px}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
+.toggle{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);padding:0 6px;cursor:pointer}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:0;min-height:calc(100vh - 58px)}
+nav.side{border-right:1px solid var(--border);padding:14px 10px 40px;background:var(--surface);position:sticky;top:58px;height:calc(100vh - 58px);overflow:auto}
+nav.side h4{margin:16px 10px 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+nav.side a{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 10px;border-radius:7px;color:var(--text);text-decoration:none;font-size:14px}
+nav.side a:hover{background:var(--surface-2)}
+nav.side a.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+nav.side a .cnt{font-size:11px;color:var(--muted);font-weight:400;white-space:nowrap}
+nav.side a .tag{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--surface-2);color:var(--muted);margin-left:4px}
+main{padding:24px 28px 80px;max-width:920px;width:100%}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:17px;margin:28px 0 8px}
+.lede{color:var(--muted);margin:0 0 18px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:0 0 12px;box-shadow:var(--shadow)}
+.card.answered{border-left:3px solid var(--accent)}
+.qhead{display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+.qtext{font-weight:600;margin:0 0 10px}
+.qid{font-size:11px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:-4px 0 8px}
+.chip{font-size:11px;padding:1px 8px;border-radius:10px;background:var(--surface-2);color:var(--muted)}
+.chip.nr{background:var(--good-soft);color:var(--good)}
+.chip.mas{background:var(--accent-soft);color:var(--accent)}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 11px;cursor:pointer}
+.opt:hover{background:var(--surface-2)}
+.opt .dot{flex:0 0 14px;height:14px;margin-top:3px;border-radius:50%;border:2px solid var(--border)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt[aria-pressed="true"] .dot{border-color:var(--accent);background:var(--accent)}
+.opt small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.opt.unk[aria-pressed="true"]{border-color:var(--unk);background:var(--unk-soft)}
+.opt.unk[aria-pressed="true"] .dot{border-color:var(--unk);background:var(--unk)}
+.guide{display:none;margin:10px 0 0;padding:10px 12px;border-radius:8px;background:var(--surface-2);font-size:13.5px;color:var(--text)}
+.guide b{font-weight:600}
+body.show-guide .guide{display:block}
+.prompts{margin:0 0 12px;padding-left:18px}
+.prompts li{margin:3px 0}
+textarea.notes{width:100%;margin-top:10px;min-height:38px;resize:vertical;border:1px solid var(--border);border-radius:8px;padding:7px 10px;background:var(--bg);font-size:13.5px}
+.field{display:flex;flex-direction:column;gap:4px;margin:0 0 14px}
+.field label{font-weight:600;font-size:14px}
+.field .hint{font-size:12.5px;color:var(--muted)}
+.field input[type=text],.field input[type=date],.field select{border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.check{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--border);border-radius:9px;padding:8px 10px;cursor:pointer;background:var(--surface)}
+.check input{margin-top:4px}
+.check small{display:block;color:var(--muted);font-size:12px}
+.check.on{border-color:var(--accent);background:var(--accent-soft)}
+.pager{display:flex;justify-content:space-between;margin-top:22px;gap:10px}
+.callout{border-radius:10px;padding:12px 14px;background:var(--accent-soft);margin:0 0 16px;font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 16px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi .v{font-size:22px;font-weight:700;margin-top:2px}
+.kpi .s{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600}
+.lvl{display:inline-block;min-width:34px;text-align:center;font-weight:700;font-size:12px;border-radius:6px;padding:2px 6px}
+.lvl.l0{background:var(--bad-soft);color:var(--bad)}
+.lvl.l1{background:var(--warn-soft);color:var(--warn)}
+.lvl.l2{background:var(--accent-soft);color:var(--accent)}
+.lvl.l3{background:var(--good-soft);color:var(--good)}
+.lvl.na{background:var(--surface-2);color:var(--muted)}
+.risk{display:inline-block;font-weight:700;font-size:12px;border-radius:6px;padding:2px 8px}
+.risk.low{background:var(--good-soft);color:var(--good)}
+.risk.med{background:var(--warn-soft);color:var(--warn)}
+.risk.high{background:var(--bad-soft);color:var(--bad)}
+.risk.unk{background:var(--unk-soft);color:var(--unk)}
+.risk.na{background:var(--surface-2);color:var(--muted)}
+.bar{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.finding{border-left:3px solid var(--bad);padding:8px 12px;margin:0 0 8px;background:var(--surface);border-radius:0 8px 8px 0;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.finding.unk{border-left-color:var(--unk)}
+.finding.med{border-left-color:var(--warn)}
+.finding .meta{font-size:12px;color:var(--muted)}
+.finding .act{margin-top:4px;font-size:14px}
+.mosca{margin-top:8px}
+.mosca .row{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:13px}
+.mosca .row .lab{width:150px;color:var(--muted)}
+.mosca .track{position:relative;flex:1;height:22px;background:var(--surface-2);border-radius:6px}
+.mosca .seg{position:absolute;top:0;height:100%;border-radius:6px;font-size:11px;color:#fff;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
+.mosca .zline{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--bad)}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.foot{margin-top:40px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px}
+.hide{display:none!important}
+input[type=range]{width:100%}
+.modal{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal .box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:18px 20px;width:100%;max-width:560px;max-height:90vh;overflow:auto}
+.modal h3{margin:0 0 6px;font-size:17px}
+.modal p{margin:0 0 12px;color:var(--muted);font-size:14px}
+.modal textarea{width:100%;height:150px;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg);font:12px/1.4 ui-monospace,Menlo,monospace}
+.modal .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:flex-end}
+.modal .msg{font-size:13px;margin-top:8px;color:var(--good)}
+.modal .msg.err{color:var(--bad)}
+.btn:focus-visible,.opt:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:760px){
+  .layout{grid-template-columns:1fr}
+  nav.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;gap:4px;padding:8px 16px}
+  nav.side h4{display:none}
+  nav.side a{flex:0 0 auto;white-space:nowrap}
+  nav.side a .cnt{display:none}
+  main{padding:18px 16px 60px}
+  .grid2,.checks,.kpis{grid-template-columns:1fr}
+  header.top{padding:10px 16px;position:static}
+  .mosca .row .lab{width:100px}
+}
+@media print{
+  header.top .actions,nav.side,.pager,.noprint{display:none!important}
+  .layout{display:block}
+  main{max-width:none;padding:0}
+  body{background:#fff;color:#000}
+  .card,.kpi,.finding{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><b>Quantum Readiness Assessment</b><span id="orgLabel">New assessment</span></div>
+  <div class="actions">
+    <label class="toggle"><input type="checkbox" id="guideToggle"> Show interviewer guidance</label>
+    <button class="btn" id="exportBtn" title="Keep a copy of these answers">Save</button>
+    <button class="btn" id="importBtn" title="Load a saved assessment">Open</button>
+    <button class="btn" id="printBtn">Print report</button>
+    <button class="btn" id="resetBtn">New</button>
+    <input type="file" id="importFile" accept="application/json,.json" class="hide">
+  </div>
+</header>
+<div id="modal" class="modal hide" role="dialog" aria-modal="true"><div class="box" id="modalBox"></div></div>
+<div class="layout">
+  <nav class="side" id="nav"></nav>
+  <main id="main"></main>
+</div>
+
+<script>
+/* =====================================================================
+   QUESTION BANK
+   - Part A follows the 10 objectives of CSA's Quantum Readiness Index
+     (V1, Jul 2026), rated L0-L3. Wording is our own paraphrase.
+   - Part B is the technical exposure layer CSA's index does not cover.
+   - "when" decides who sees a section or question:
+       {industry:[...]}  matches the selected industry
+       {footprint:"x"}   matches a ticked technology
+       {cii:"yes"}       matches the CII answer
+     Several keys in one object = all must match. An array of objects = any.
+   - Option risk: 0 good ... 3 high exposure. "Don't know" counts as 2
+     and is flagged as discovery needed.
+   ===================================================================== */
+
+const INDUSTRIES = [
+  ["fs","Financial services","Banks, insurers, payments, capital markets"],
+  ["health","Healthcare","Hospitals, clinics, labs, pharma"],
+  ["energy","Energy, utilities & water","Power, gas, water, district cooling"],
+  ["transport","Transport, logistics & maritime","Ports, shipping, aviation, land transport, logistics"],
+  ["telco","Telecommunications","Mobile, fixed, data centres"],
+  ["gov","Government & public sector","Agencies, statutory boards, government-linked companies"],
+  ["tech","Technology / SaaS","Software and platform companies"],
+  ["mfg","Manufacturing","Semiconductors, electronics, industrial"],
+  ["other","Other",""]
+];
+
+const FOOTPRINT = [
+  ["cloud","Public cloud","AWS, Azure, GCP, Alibaba Cloud"],
+  ["onprem","Own data centre / on-prem servers",""],
+  ["pki","Own internal certificate authority (PKI)","e.g. Microsoft AD CS, EJBCA"],
+  ["hsm","Hardware security modules (HSMs)","General-purpose or payment HSMs"],
+  ["vpn","VPNs","Remote access or site-to-site"],
+  ["apis","APIs used by partners or customers",""],
+  ["mobile","Mobile apps","iOS / Android apps for customers or staff"],
+  ["iot","IoT or OT devices","Sensors, industrial control, connected equipment"],
+  ["ships","Software or firmware shipped to customers","Requires code signing"],
+  ["legacy","Mainframe or legacy platforms","Systems that are hard to change"],
+  ["payments","Card or payment systems","Card issuing, acquiring, payment switches"]
+];
+
+const LEVEL_NAMES = ["L0 Not started","L1 Initial","L2 Defined","L3 Operational"];
+
+const PART_A = [
+ {id:"RA1",domain:"Risk Assessment",title:"Critical assets identified and prioritised",nr:true,
+  mas:"MAS: keep an inventory of cryptographic assets; prioritise critical assets",
+  prompts:["Which systems, data and business functions would hurt most if their encryption or signatures were broken?",
+           "What criteria did you use to rank them: business criticality, data sensitivity, how long data stays sensitive, internet exposure?",
+           "For the top systems, do you know which cryptography they depend on?"],
+  levels:["Nothing identified, or only ad hoc.",
+          "A rough list of important systems or data exists. Ranking is informal and cryptography has not been looked at.",
+          "Clear criteria are applied. Cryptographic discovery has been done for priority systems and an inventory exists for them.",
+          "Prioritisation and crypto inventory are documented, kept up to date, and actually used for planning."],
+  next:["Accept quantum risk as relevant for long-lived or sensitive data, and list a first set of systems that need attention.",
+        "Define ranking criteria (criticality, sensitivity and lifespan of data, exposure, crypto dependencies) and start crypto discovery on the top systems.",
+        "Turn the ranking and inventory into a maintained document, with a regular review.",
+        "Keep using the inventory to drive risk and migration decisions."],
+  why:"This is the no-regrets starting point. Without knowing what matters most, migration effort gets spread thin."},
+ {id:"RA2",domain:"Risk Assessment",title:"Quantum risk assessed in the enterprise risk framework",
+  mas:"MAS: assess risks; plan for contingencies if threats arrive earlier",
+  prompts:["Is quantum risk on the enterprise risk register?",
+           "Have you written specific scenarios, e.g. 'customer data captured today is decrypted in 2032' or 'signatures on payment instructions can be forged'?",
+           "Were likelihood and impact rated, and how often is this reviewed?"],
+  levels:["Not recognised or discussed.",
+          "Recognised and discussed beyond IT, but no scenarios or structured assessment.",
+          "Scenarios documented and rated for likelihood and impact within the existing risk framework.",
+          "Assessed on a regular cycle and used to inform migration planning."],
+  next:["Raise quantum risk at the organisational level, not only as a technical topic.",
+        "Write 3 to 5 quantum risk scenarios and rate them using your existing risk method.",
+        "Set a review cadence and feed results into technology risk reporting.",
+        "Review the method as standards and the threat landscape change."],
+  why:"Leaders fund what appears on the risk register. A scenario like 'harvest now, decrypt later' makes the risk concrete."},
+ {id:"GV1",domain:"Governance",title:"Ownership, decision-making and oversight",nr:true,
+  mas:"MAS: board and senior management oversight of technology risk",
+  prompts:["Who owns quantum-safe migration? Is it a named role or committee?",
+           "Has the board or risk committee been briefed?",
+           "Is this handled inside existing technology governance, or as a side project?"],
+  levels:["No owner. Any activity is ad hoc inside individual projects.",
+          "Informal ownership by individuals or a team without a clear mandate.",
+          "Clear accountability and decision rights inside existing governance; decisions are recorded.",
+          "Governance works in practice and adapts as priorities change."],
+  next:["Write down who is involved in quantum-related decisions today.",
+        "Assign accountability and decision rights within existing governance, with an escalation path.",
+        "Make sure the structure is used in practice and quantum is a routine agenda item.",
+        "Review the governance set-up periodically."],
+  why:"This is a multi-year programme. Without a clear owner it stalls after the first workshop."},
+ {id:"GV2",domain:"Governance",title:"Roadmap and policies updated",
+  mas:"MAS: review internal policies and processes",
+  prompts:["Is there a quantum-safe roadmap, even a high-level one?",
+           "Do your crypto, data, procurement or contract policies mention post-quantum requirements?",
+           "Is there budget for this in the next planning cycle?"],
+  levels:["No roadmap; policies do not mention quantum.",
+          "A roadmap is an idea or a slide. A few policies or RFPs mention it inconsistently.",
+          "A defined roadmap sequences migration of priority systems. Policies are updated and aligned.",
+          "Roadmap and policies drive real planning, procurement and budgets, and are reviewed."],
+  next:["Start discussing how quantum affects planning, procurement, contracts and crypto policy.",
+        "Update supporting policies and write a roadmap for priority systems.",
+        "Use the roadmap in routine planning and procurement; set a review cycle.",
+        "Keep roadmap and policies aligned as things change."],
+  why:"Procurement is the cheapest place to fix this. Every system bought today without crypto-agility becomes a future migration."},
+ {id:"TE1",domain:"Technology",title:"Quantum-safe replacement options evaluated",nr:true,
+  mas:"MAS: explore quantum-safe solutions (post-quantum cryptography, QKD)",
+  prompts:["For your priority systems, have you looked at what would replace RSA/ECC there?",
+           "Any tests or proofs of concept, e.g. hybrid post-quantum TLS?",
+           "Were performance, interoperability and vendor support considered?"],
+  levels:["Not considered.",
+          "Literature review or high-level discussion only.",
+          "A structured evaluation for priority systems, with documented findings on feasibility and limits.",
+          "Findings feed architecture and migration plans and are reviewed as standards mature."],
+  next:["Read up on options for your priority systems and discuss architectural impact.",
+        "Run a structured evaluation with proofs of concept; document findings.",
+        "Bring findings into architecture and roadmap; plan interim measures (forward secrecy, isolation, wrappers) where replacement is not yet possible.",
+        "Revisit decisions as new standards and products arrive."],
+  why:"Post-quantum keys and signatures are much larger. Testing early shows where handshakes, packets or devices will struggle."},
+ {id:"TE2",domain:"Technology",title:"Crypto management and crypto-agility",
+  mas:"MAS: build crypto-agility so algorithms can change without major disruption",
+  prompts:["Is there a documented standard of approved algorithms and key sizes?",
+           "Is there lifecycle control for keys and certificates: issue, rotate, retire?",
+           "Can systems change algorithms through configuration rather than code changes?"],
+  levels:["No defined practices; changing crypto would be hard and disruptive.",
+          "Some practices exist but are inconsistent; agility is acknowledged but not designed for.",
+          "Defined lifecycle practices and oversight; agility requirements are defined.",
+          "Operational across the organisation and applied during upgrades and refreshes."],
+  next:["Assign oversight for cryptography and start basic management practices.",
+        "Document the crypto lifecycle and define what crypto-agility means for your architecture.",
+        "Apply these practices across systems and use every tech refresh to improve agility.",
+        "Keep refining as standards and threats evolve."],
+  why:"Agility is what makes this migration, and the next one, affordable."},
+ {id:"TC1",domain:"Training & Capability",title:"Awareness of the quantum threat",nr:true,
+  mas:"MAS: upskill staff",
+  prompts:["Have leaders and key teams had a briefing on the quantum threat?",
+           "Do they understand 'harvest now, decrypt later' and why action is needed before a quantum computer exists?",
+           "Is there a structured programme, or only one-off talks?"],
+  levels:["No awareness activities.",
+          "Ad hoc briefings or talks; understanding is uneven.",
+          "A structured awareness programme for relevant stakeholders.",
+          "Sustained and kept current as the field develops."],
+  next:["Run an introductory briefing on quantum computing and its impact on cryptography.",
+        "Build a short structured programme covering the threat, PQC basics and migration steps.",
+        "Integrate it into regular learning and keep content current.",
+        "Review effectiveness periodically."],
+  why:"Leadership awareness unlocks budget. This is often where an outside expert adds value fastest."},
+ {id:"TC2",domain:"Training & Capability",title:"Skills to deliver the migration",
+  mas:"MAS: upskill staff",
+  prompts:["Who internally could lead the technical work: discovery, PKI changes, testing?",
+           "Have you identified skill gaps across security, architecture, risk and programme management?",
+           "Is there a plan to close them: training, hiring, or partners?"],
+  levels:["The needed skills are not present or understood.",
+          "Skills identified but concentrated in a few people.",
+          "Gaps addressed through training, processes and playbooks.",
+          "Skills applied in practice and kept current; lessons captured."],
+  next:["List the competencies needed and map them to teams; do a gap assessment.",
+        "Close gaps through training or partners; write playbooks for discovery, risk assessment and evaluation.",
+        "Apply skills on real migration work and add them to regular development programmes.",
+        "Capture lessons learned into playbooks."],
+  why:"Most organisations will need outside help for discovery and planning. This shows how much."},
+ {id:"EE1",domain:"External Engagements",title:"Vendor and third-party quantum risk",nr:true,
+  mas:"MAS: work with vendors to manage supply-chain risk",
+  prompts:["Do you have a list of key vendors whose products use cryptography: cloud, IAM, HSM, network, core applications?",
+           "Have you asked them for their post-quantum roadmap? In writing?",
+           "Do you know which of your systems cannot change until a vendor does?"],
+  levels:["Vendors not considered.",
+          "Initial list and some informal conversations.",
+          "Structured vendor assessment: roadmaps, crypto used, upgrade timelines, impact on your plan.",
+          "Vendor readiness feeds your plan and is reviewed in normal vendor management."],
+  next:["List key vendor technologies and start conversations.",
+        "Send a structured questionnaire: roadmap, algorithms and libraries, ability to update crypto, timeline and cost.",
+        "Make vendor quantum readiness part of regular vendor reviews and align timelines.",
+        "Keep monitoring vendor progress and update plans."],
+  why:"For most companies, the majority of their cryptography sits inside products they buy."},
+ {id:"EE2",domain:"External Engagements",title:"Industry and ecosystem engagement",
+  mas:"MAS: collaborate with industry and information-sharing groups",
+  prompts:["Do you follow external guidance: CSA Handbook, NIST, MAS, sector bodies?",
+           "Do you take part in industry forums or peer groups on this?",
+           "Any joint pilots, e.g. through IMDA's National Quantum-Safe Network Plus?"],
+  levels:["No external engagement.",
+          "Attending briefings or reading guidance; not yet used in planning.",
+          "Active engagement with peers, experts and vendors that informs planning.",
+          "Ongoing collaboration and joint pilots that refine the approach."],
+  next:["Identify relevant forums and guidance and start attending.",
+        "Engage regularly and explore collaborative pilots.",
+        "Run joint experiments or proofs of concept with partners.",
+        "Keep sharing and learning with the ecosystem."],
+  why:"Peers in the same sector face the same vendors and blockers. Shared learning saves time."}
+];
+
+const U = "u"; // marker for "Don't know"
+
+const PART_B = [
+ {id:"data",title:"Data and its lifespan",intro:"How long data must stay secret decides how urgent this is. Attackers can record encrypted traffic today and decrypt it later.",
+  qs:[
+   {id:"D1",text:"What is the longest time any of your sensitive data must stay confidential?",
+    opts:[["Under 2 years",0],["2 to 5 years",1],["5 to 10 years",2],["More than 10 years",3]],
+    why:"This is the 'shelf-life' in Mosca's inequality. Customer, health, legal and government data often needs 10+ years.",
+    action:"Identify the long-lived data sets and treat the systems that store or transmit them as first in line."},
+   {id:"D2",text:"Is that long-lived data sent over the internet or between sites (partners, cloud, branches)?",
+    opts:[["No, it stays on internal networks",0],["Sometimes",2],["Yes, routinely",3]],
+    why:"Traffic over public networks is what can be recorded now and decrypted later.",
+    action:"Map the data flows carrying long-lived data and prioritise hybrid post-quantum TLS or VPN on those paths."},
+   {id:"D3",text:"Does your data classification record how long each type of data must stay confidential?",
+    opts:[["Yes, with retention or confidentiality periods",0],["Classification exists, but without time periods",1],["No data classification",3]],
+    why:"Without a time dimension you cannot rank quantum exposure.",
+    action:"Add a confidentiality lifetime to the data classification scheme."},
+   {id:"D4",text:"Do any digital signatures need to stay trustworthy for many years (contracts, legal records, firmware, root certificates)?",
+    opts:[["No",0],["A few",1],["Yes, many",3]],
+    why:"Once RSA/ECC is broken, old signatures can be forged. Long-lived trust anchors need early planning.",
+    action:"List long-lived signatures and trust anchors; plan re-signing or migration to post-quantum signatures (ML-DSA, or hash-based for firmware)."}
+  ]},
+ {id:"tls",title:"Internet-facing services and TLS",intro:"Public websites, APIs and portals are the most exposed and usually the easiest place to start.",
+  qs:[
+   {id:"T1",text:"Roughly how many internet-facing services do you run (websites, APIs, portals)?",
+    opts:[["Fewer than 10",0],["10 to 50",1],["50 to 200",2],["More than 200",3]],
+    why:"Sets the scale of the external migration.",action:"Plan a phased TLS migration, starting with endpoints that carry long-lived data."},
+   {id:"T2",text:"Is there a complete, current list of those endpoints?",
+    opts:[["Yes, discovered automatically",0],["Yes, maintained by hand",1],["Partial",2],["No",3]],
+    why:"You cannot migrate what you cannot find. Shadow endpoints are common.",
+    action:"Run external attack-surface discovery and a TLS scan to build the endpoint list."},
+   {id:"T3",text:"Where is TLS mostly terminated?",
+    opts:[["CDN or cloud load balancer (e.g. Cloudflare, Akamai, AWS, Azure)",0],["A mix of CDN and our own appliances",1],["Mostly our own appliances or servers (e.g. F5, NGINX, IIS)",2]],
+    why:"Major CDNs and cloud providers already offer hybrid post-quantum key exchange. Your own appliances need firmware or software upgrades.",
+    action:"Check post-quantum support on each TLS termination point; schedule upgrades for appliances that lack it."},
+   {id:"T4",text:"Is TLS 1.3 enabled on external services?",
+    opts:[["On all of them",0],["On most",1],["On a few",2],["Not at all",3]],
+    why:"Hybrid post-quantum key exchange (e.g. X25519MLKEM768) is only defined for TLS 1.3.",
+    action:"Enable TLS 1.3 everywhere; it is the prerequisite for post-quantum key exchange."},
+   {id:"T5",text:"Are old protocols still enabled anywhere (SSL 3.0, TLS 1.0 or 1.1)?",
+    opts:[["No",0],["On some legacy systems",2],["Yes, widely",3]],
+    why:"A sign of weak crypto hygiene and low agility, regardless of quantum.",
+    action:"Retire old protocols; treat the systems that need them as legacy migration candidates."},
+   {id:"T6",text:"Have you tried hybrid post-quantum key exchange on any service?",
+    opts:[["Yes, in production",0],["Tested in a lab",1],["Not yet",2]],
+    why:"This is the easiest real-world step and directly reduces 'harvest now, decrypt later' risk.",
+    action:"Pilot hybrid post-quantum TLS on one high-value public endpoint."},
+   {id:"T7",when:{footprint:"apis"},text:"How do partners authenticate to your APIs?",
+    opts:[["API keys or OAuth with symmetric (HMAC) signing",1],["Mutual TLS or RSA/ECC-signed requests or tokens",2],["Mix; not documented",3]],
+    why:"Partner integrations need coordinated changes on both sides, so they take longest.",
+    action:"Inventory partner integrations and their crypto; agree a migration timeline with key partners."}
+  ]},
+ {id:"pki",title:"Certificates and PKI",intro:"Certificates carry public keys that quantum computers can break, and they are everywhere.",
+  qs:[
+   {id:"C1",text:"How are certificates tracked?",
+    opts:[["A certificate management platform or cloud certificate manager",0],["Spreadsheets",2],["Not tracked centrally",3]],
+    why:"A certificate inventory is the backbone of any migration.",
+    action:"Adopt a certificate management tool and import all known certificates."},
+   {id:"C2",text:"Roughly how many certificates do you have, internal and external?",
+    opts:[["Fewer than 100",0],["100 to 1,000",1],["1,000 to 10,000",2],["More than 10,000",3]],
+    why:"Scale tells you whether manual migration is realistic.",action:"Plan automation before attempting a certificate migration at this scale."},
+   {id:"C3",text:"How are certificates renewed?",
+    opts:[["Mostly automated (e.g. ACME or cloud-managed)",0],["A mix",1],["Mostly by hand",3]],
+    why:"Public TLS certificate lifetimes are shrinking to 47 days by 2029. Automation is needed anyway, and it is the same capability that makes algorithm changes possible.",
+    action:"Automate certificate issuance and renewal; this doubles as crypto-agility."},
+   {id:"C4",when:{footprint:"pki"},text:"When do your internal root CA certificates expire?",
+    opts:[["Before 2030",1],["2030 to 2035",2],["After 2035",3]],
+    why:"RSA and ECC roots that are trusted past 2030-2035 will need replacement early, and every device trusting them must be updated.",
+    action:"Plan a post-quantum or hybrid root CA and a distribution plan for the new trust anchor."},
+   {id:"C5",when:{footprint:"pki"},text:"Does your CA software support post-quantum signatures (ML-DSA)?",
+    opts:[["Yes",0],["On the vendor roadmap",1],["No, or unsupported version",3]],
+    why:"The CA must issue post-quantum certificates before anything that depends on it can migrate.",
+    action:"Confirm the CA vendor's ML-DSA timeline; plan an upgrade or replacement."},
+   {id:"C6",when:{footprint:"pki"},text:"What depends on your internal CA?",
+    opts:[["A few applications",1],["Many: service-to-service mTLS, Wi-Fi, VPN, smart cards, devices",3]],
+    why:"Every relying system must accept new certificate types, so the dependency map sets the migration order.",
+    action:"Map all relying systems and test which of them accept post-quantum or hybrid certificates."}
+  ]},
+ {id:"keys",title:"Keys, HSMs and key management",intro:"Where keys live and how they are managed determines how hard migration will be.",
+  qs:[
+   {id:"K1",text:"Where are your most important keys stored?",
+    opts:[["HSM or cloud key management service",0],["A mix of HSM and software",1],["Mostly in software, config files or on app servers",3]],
+    why:"Keys scattered in software are hard to find, rotate or migrate.",
+    action:"Move critical keys into managed key storage (HSM or KMS)."},
+   {id:"K2",text:"Is there an inventory of keys (owner, algorithm, size, expiry)?",
+    opts:[["Yes",0],["Partial",2],["No",3]],
+    why:"This is part of the cryptographic inventory that both MAS and CSA expect.",
+    action:"Build a key inventory, starting with the priority systems."},
+   {id:"H1",when:{footprint:"hsm"},text:"Do your HSMs support post-quantum algorithms (ML-KEM, ML-DSA)?",
+    opts:[["Yes, firmware available",0],["On the vendor roadmap",1],["No, or the model is near end of life",3]],
+    why:"HSMs often need new hardware for post-quantum support, and procurement takes a long time.",
+    action:"Get written HSM vendor timelines; align with the hardware refresh cycle."},
+   {id:"H2",when:{footprint:"hsm"},text:"When is your next HSM hardware refresh?",
+    opts:[["Within 2 years",0],["2 to 5 years",1],["More than 5 years, or no plan",2]],
+    why:"A refresh is the cheapest moment to require post-quantum support.",
+    action:"Add post-quantum support as a mandatory requirement for the next HSM procurement."}
+  ]},
+ {id:"apps",title:"Applications and code",intro:"Cryptography inside your own applications is invisible to infrastructure scans.",
+  qs:[
+   {id:"A1",text:"How do your applications sign tokens (JWT, SAML, OAuth)?",
+    opts:[["We do not sign tokens",0],["Symmetric only (e.g. HS256)",0],["RSA or ECDSA (e.g. RS256, ES256)",2]],
+    why:"RS256 and ES256 rely on RSA/ECC and are quantum-vulnerable. HMAC-based signing is symmetric and fine.",
+    action:"Inventory token signing algorithms across identity providers and services; plan migration with the IdP vendor."},
+   {id:"A2",text:"Is cryptography configured centrally, or written into application code?",
+    opts:[["Central library or configuration",0],["A mix",2],["Mostly written into each application",3]],
+    why:"Hardcoded crypto means code changes in every application, which is the most expensive form of migration.",
+    action:"Introduce a shared crypto library or service so algorithms can be changed in one place."},
+   {id:"A3",text:"Do you know which crypto libraries are in use (OpenSSL, BouncyCastle, Java, .NET, Go)?",
+    opts:[["Yes, from SBOMs or scanning",0],["Roughly",1],["No",3]],
+    why:"Library versions decide whether post-quantum algorithms are available.",
+    action:"Generate SBOMs and list crypto libraries and versions per application."},
+   {id:"A4",text:"Do you scan code or binaries for cryptographic usage (a CBOM)?",
+    opts:[["Yes, we produce a cryptographic bill of materials",0],["We produce SBOMs only",1],["No",3]],
+    why:"A CBOM (cryptographic bill of materials) shows exactly which algorithms each application uses.",
+    action:"Pilot a crypto scanner (e.g. IBM CBOMkit) on the top applications."},
+   {id:"A5",text:"How old is your oldest business-critical application still in use?",
+    opts:[["Under 5 years",0],["5 to 10 years",1],["10 to 20 years",2],["More than 20 years",3]],
+    why:"Old applications often have hardcoded crypto and no one left who knows the code.",
+    action:"Flag legacy applications for isolation, wrapping or replacement planning."},
+   {id:"A6",text:"How is data at rest encrypted?",
+    opts:[["AES-256",0],["AES-128",1],["Mixed, including older algorithms (e.g. 3DES)",3],["Not encrypted in places",3]],
+    why:"Symmetric encryption is mostly safe from quantum attacks; AES-256 is preferred for long-term data.",
+    action:"Standardise on AES-256 for long-lived data and retire older algorithms."}
+  ]},
+ {id:"net",title:"Network and remote access",intro:"Admin access and network links carry high-value traffic.",
+  qs:[
+   {id:"N1",text:"Are SSH keys inventoried and managed?",
+    opts:[["Yes, centrally managed or certificate-based",0],["Partially",2],["No",3]],
+    why:"Unmanaged SSH keys are common and long-lived.",action:"Inventory SSH keys and move to centrally managed or certificate-based access."},
+   {id:"N2",text:"Are SSH servers and clients on recent OpenSSH (9.0 or newer)?",
+    opts:[["Yes",0],["A mix",1],["No",2]],
+    why:"Recent OpenSSH uses hybrid post-quantum key exchange by default, so upgrading is a quick win.",
+    action:"Upgrade OpenSSH across servers and admin workstations."},
+   {id:"V1",when:{footprint:"vpn"},text:"Do your VPN products support post-quantum key exchange?",
+    opts:[["Yes",0],["On the vendor roadmap",1],["No, or end of life",3]],
+    why:"VPNs carry long-lived sensitive traffic across public networks: prime 'harvest now' targets.",
+    action:"Get VPN vendor post-quantum timelines; prioritise site-to-site links that carry sensitive data."},
+   {id:"V2",when:{footprint:"vpn"},text:"Are site-to-site links (branches, data centres, partners) carried over internet VPNs?",
+    opts:[["No",0],["Some",1],["Yes, most",2]],
+    why:"These tunnels are recordable today.",action:"Prioritise post-quantum upgrades on internet-based site-to-site tunnels."}
+  ]},
+ {id:"vendors",title:"Vendors and SaaS",intro:"Much of the cryptography a company depends on lives inside products it buys.",
+  qs:[
+   {id:"S1",text:"How many SaaS or third-party providers process your sensitive data?",
+    opts:[["Fewer than 10",0],["10 to 50",1],["More than 50",2]],
+    why:"Each one is a migration dependency you do not control.",action:"Rank vendors by data sensitivity and criticality."},
+   {id:"S2",text:"Have you asked key vendors about their post-quantum plans?",
+    opts:[["Yes, formally, with answers tracked",0],["Informally",1],["No",3]],
+    why:"A no-regrets step in CSA's index and an explicit MAS expectation.",
+    action:"Send a standard post-quantum vendor questionnaire to the top 10 to 20 vendors."},
+   {id:"S3",text:"Do new contracts or RFPs require crypto-agility or a post-quantum roadmap?",
+    opts:[["Yes",0],["Planned",1],["No",3]],
+    why:"The cheapest fix is at the point of purchase.",action:"Add post-quantum and crypto-agility clauses to procurement templates."},
+   {id:"S4",type:"text",text:"Which vendor systems would be hardest to change (e.g. core banking, ERP, network equipment)?",
+    why:"Free text. Capture names; these usually become the critical path of the migration."}
+  ]},
+ {id:"agility",title:"Crypto-agility in practice",intro:"How fast has the organisation changed cryptography before?",
+  qs:[
+   {id:"G1",text:"The last time you had to change crypto broadly (e.g. SHA-1 retirement, a CA being distrusted), how long did it take?",
+    opts:[["Days or weeks",0],["Months",1],["More than a year",3],["We have never done it",3]],
+    why:"Past migrations are the best predictor of future ones.",action:"Use the lessons from the last migration to estimate the timeline realistically."},
+   {id:"G2",text:"Is there a documented standard of approved algorithms and key sizes?",
+    opts:[["Yes, and it is enforced",0],["Yes, but not enforced",1],["No",3]],
+    why:"The foundation of crypto management.",action:"Publish a crypto standard that includes the post-quantum transition timeline (NIST: RSA/ECC deprecated 2030, disallowed 2035)."},
+   {id:"G3",text:"Could you change the algorithm of a critical system through configuration alone?",
+    opts:[["Yes",0],["For some systems",1],["No",3]],
+    why:"This is what crypto-agility means in practice.",action:"Make crypto configurable in all new and refreshed systems."},
+   {id:"G4",text:"How long would it realistically take to migrate your top 10 critical systems?",
+    opts:[["1 to 2 years",0],["3 to 5 years",1],["5 to 8 years",2],["More than 8 years",3]],
+    why:"This is the 'migration time' in Mosca's inequality.",action:"Start the longest-lead items (vendors, PKI, HSMs) now."}
+  ]},
+ /* ---------- technology branches ---------- */
+ {id:"cloud",when:{footprint:"cloud"},branch:true,title:"Cloud",intro:"Cloud providers are migrating their own services, but you must enable and configure them.",
+  qs:[
+   {id:"CL1",text:"Do public endpoints use cloud-managed TLS (load balancers, API gateways, CDN)?",
+    opts:[["Mostly",0],["Partly",1],["No",2]],
+    why:"You inherit post-quantum improvements from providers, sometimes by flipping a setting.",action:"Check and enable post-quantum TLS policies on cloud load balancers and gateways."},
+   {id:"CL2",text:"Have you reviewed your cloud providers' post-quantum roadmaps?",
+    opts:[["Yes",0],["No",2]],
+    why:"AWS, Azure and Google all publish them; they set the pace for many of your services.",action:"Review provider roadmaps and record which services are already quantum-safe."},
+   {id:"CL3",text:"How are cloud-to-on-prem or cloud-to-cloud links protected?",
+    opts:[["No such links",0],["Private circuits with encryption",1],["IPsec VPN over the internet",2]],
+    why:"Hybrid connectivity often carries the most sensitive data.",action:"Include hybrid connectivity in the VPN post-quantum plan."}
+  ]},
+ {id:"mobile",when:{footprint:"mobile"},branch:true,title:"Mobile apps",intro:"Apps in customers' pockets are slow to update, which makes crypto changes slow.",
+  qs:[
+   {id:"M1",text:"Do your apps use certificate pinning?",
+    opts:[["No",0],["Yes, with backup pins and remote update",1],["Yes, pins hardcoded in the app",3]],
+    why:"Hardcoded pins mean certificate or algorithm changes break old app versions.",action:"Move to pinning that can be updated remotely, with backup pins."},
+   {id:"M2",text:"Do apps contain their own cryptography (device binding, transaction signing, soft tokens)?",
+    opts:[["No",0],["Yes, symmetric only",1],["Yes, RSA or ECC based",3]],
+    why:"In-app signing is common in banking and is quantum-vulnerable.",action:"Inventory in-app crypto and plan a staged migration with forced app updates."}
+  ]},
+ {id:"iot",when:[{footprint:"iot"},{industry:["energy","transport","mfg"]}],branch:true,title:"IoT and OT devices",intro:"Devices often stay in the field for 10 to 20 years and may never be updated.",
+  qs:[
+   {id:"O1",text:"How long do devices stay in service?",
+    opts:[["Under 5 years",0],["5 to 10 years",2],["More than 10 years",3]],
+    why:"A device deployed today with RSA may still be running when RSA is broken.",action:"Require post-quantum-capable or updatable crypto in new device procurement."},
+   {id:"O2",text:"Can device firmware and crypto be updated remotely?",
+    opts:[["Yes, with signed over-the-air updates",0],["Some devices",2],["No, manual or never",3]],
+    why:"Without updates, the only option later is physical replacement.",action:"Plan isolation or replacement for devices that cannot be updated."},
+   {id:"O3",text:"Do devices verify firmware signatures, and with what?",
+    opts:[["Yes, hash-based signatures (LMS/XMSS)",0],["Yes, RSA or ECDSA",2],["No signature check",3]],
+    why:"Hash-based signatures are already recommended (e.g. in the US NSA's CNSA 2.0) for firmware signing.",action:"Move firmware signing to hash-based or ML-DSA signatures in new device generations."},
+   {id:"O4",text:"Is OT connected to the IT network or reachable remotely?",
+    opts:[["Fully segmented, no remote access",0],["Remote access through VPN or jump host",2],["Direct connections",3]],
+    why:"Remote paths into OT carry high-impact traffic.",action:"Prioritise post-quantum upgrades on remote-access paths into OT."}
+  ]},
+ {id:"ship",when:{footprint:"ships"},branch:true,title:"Code signing",intro:"Signatures on software you ship must stay trusted for the life of that software.",
+  qs:[
+   {id:"CS1",text:"How long must signatures on shipped software stay verifiable?",
+    opts:[["Under 2 years",0],["2 to 10 years",2],["More than 10 years",3]],
+    why:"Forged signatures after Q-day would allow malicious updates to look genuine.",action:"Plan post-quantum code signing for long-lived products."},
+   {id:"CS2",text:"Where are code-signing keys held?",
+    opts:[["HSM or cloud signing service",0],["On build servers or developer machines",3]],
+    why:"Code-signing keys are high-value regardless of quantum.",action:"Move code-signing keys into an HSM-backed signing service."}
+  ]},
+ {id:"legacy",when:{footprint:"legacy"},branch:true,title:"Mainframe and legacy",intro:"Systems that are hard to change set the overall timeline.",
+  qs:[
+   {id:"L1",text:"Does your mainframe or legacy platform vendor offer post-quantum support?",
+    opts:[["Yes",0],["On the roadmap",1],["No, or the platform is out of support",3]],
+    why:"Some current mainframes already include quantum-safe features; older ones do not.",action:"Confirm vendor support and plan upgrades or wrappers."},
+   {id:"L2",text:"Are there systems that can no longer be patched or upgraded?",
+    opts:[["None",0],["A few",2],["Many",3]],
+    why:"These need compensating measures: isolation, gateways or replacement.",action:"List unpatchable systems and decide on isolation, a crypto gateway in front, or replacement."}
+  ]},
+ {id:"pay",when:[{footprint:"payments"}],branch:true,title:"Payments and cards",intro:"Payment systems rely heavily on HSMs, PKI and long-standing scheme rules.",
+  qs:[
+   {id:"P1",text:"Do you run payment HSMs, and has the vendor shared a post-quantum roadmap?",
+    opts:[["Yes, roadmap received",0],["Yes, no roadmap yet",2],["We do not run payment HSMs",0]],
+    why:"Payment HSMs underpin PIN, card and transaction security.",action:"Request payment HSM vendor post-quantum timelines."},
+   {id:"P2",text:"Do you issue or accept chip cards (EMV)?",
+    opts:[["No",0],["Yes",2]],
+    why:"EMV chip authentication uses RSA. Change depends on card schemes, and cards stay in circulation for years.",action:"Track card scheme post-quantum plans and their impact on card reissue cycles."}
+  ]},
+ /* ---------- industry modules ---------- */
+ {id:"ind_fs",when:{industry:["fs"]},industry:true,title:"Financial services",intro:"Specific to MAS-regulated institutions and the payment ecosystem.",
+  qs:[
+   {id:"F1",text:"Have you mapped your position against MAS Circular MAS/TCRS/2024/01 (quantum cybersecurity risks)?",
+    opts:[["Yes",0],["Partially",1],["No",3]],
+    why:"The circular sets expectations: crypto inventory, crypto-agility, vendor engagement, upskilling and policy review.",action:"Do a gap analysis against the MAS circular and report it to the risk committee."},
+   {id:"F2",text:"Is quantum risk covered in technology risk management reporting to the board?",
+    opts:[["Yes",0],["Planned",1],["No",3]],
+    why:"MAS TRM Guidelines expect board and senior management oversight of technology risk.",action:"Add quantum risk to TRM and board risk reporting."},
+   {id:"F3",text:"Does your core banking or core insurance platform vendor have a post-quantum roadmap?",
+    opts:[["Yes",0],["Asked, waiting for an answer",1],["No, or not asked",3]],
+    why:"The core platform is usually the critical path.",action:"Formally request the core platform vendor's post-quantum roadmap."},
+   {id:"F4",text:"Are you tracking post-quantum plans for payment and interbank networks (e.g. SWIFT, FAST, PayNow, GIRO)?",
+    opts:[["Yes",0],["No",2]],
+    why:"These changes are coordinated industry-wide; you need to be ready when the network moves.",action:"Assign someone to track network and scheme post-quantum timelines."},
+   {id:"F5",text:"Do internet and mobile banking rely on RSA or ECC (digital tokens, device binding, transaction signing)?",
+    opts:[["No",0],["Partly",2],["Yes",3]],
+    why:"Customer authentication is high-impact and touches millions of devices.",action:"Inventory customer-authentication crypto and plan the migration with the app and token vendors."},
+   {id:"F6",text:"Do you exchange encrypted files with partners, regulators or clearing houses (e.g. PGP, SFTP)?",
+    opts:[["No",0],["Yes, using symmetric keys or managed transfer",1],["Yes, with PGP or RSA keys",3]],
+    why:"File exchanges often carry long-lived customer or transaction data.",action:"Inventory file-exchange channels and their keys; agree upgrades with counterparties."}
+  ]},
+ {id:"ind_health",when:{industry:["health"]},industry:true,title:"Healthcare",intro:"Health data stays sensitive for a patient's lifetime.",
+  qs:[
+   {id:"HC1",text:"Do you exchange patient data with external systems (e.g. the National Electronic Health Record, labs, insurers)?",
+    opts:[["No",0],["Yes, over private links",2],["Yes, over internet APIs",3]],
+    why:"Patient data captured in transit today stays sensitive for decades.",action:"Prioritise post-quantum protection on patient data exchange channels."},
+   {id:"HC2",text:"Can connected medical devices have their crypto updated?",
+    opts:[["Yes",0],["Some",2],["No",3],["No connected devices",0]],
+    why:"Medical devices are long-lived and often vendor-locked.",action:"Ask device vendors about post-quantum update paths; plan network isolation."}
+  ]},
+ {id:"ind_cii",when:[{industry:["energy","transport","telco"]},{cii:"yes"}],industry:true,title:"Critical infrastructure",intro:"Applies to designated CII owners and sectors with essential services.",
+  qs:[
+   {id:"CI1",text:"Have you reviewed CSA's Quantum-Safe Migration Handbook and Quantum Readiness Index?",
+    opts:[["Yes, and completed the index",0],["Read but not completed",1],["No",2]],
+    why:"CSA's Handbook targets CII owners directly. Completing the official index gives a baseline you can share with CSA.",action:"Complete CSA's online Quantum Readiness Index and keep the report."},
+   {id:"CI2",text:"Has quantum-safe migration been discussed with your sector regulator or CSA?",
+    opts:[["Yes",0],["No",2]],
+    why:"Regulators are setting expectations and timelines for CII.",action:"Confirm current CSA and sector-regulator expectations and timelines."}
+  ]},
+ {id:"ind_telco",when:{industry:["telco"]},industry:true,title:"Telecommunications",intro:"Network-wide crypto changes depend on equipment vendors and standards bodies.",
+  qs:[
+   {id:"TL1",text:"Have network equipment vendors (core, RAN, routers) shared post-quantum roadmaps?",
+    opts:[["Yes",0],["Some",1],["No",3]],
+    why:"Telco crypto lives mostly in vendor equipment.",action:"Collect vendor roadmaps and align with 3GPP and GSMA timelines."},
+   {id:"TL2",text:"Have you assessed subscriber-related public-key crypto (e.g. 5G identity concealment, eSIM provisioning)?",
+    opts:[["Yes",0],["No",2]],
+    why:"5G identity concealment uses elliptic-curve crypto, and eSIM provisioning relies on PKI.",action:"Assess subscriber-facing public-key crypto and track GSMA guidance."}
+  ]},
+ {id:"ind_transport",when:{industry:["transport"]},industry:true,title:"Transport, logistics and maritime",intro:"Trade documents and partner networks are long-lived and multi-party.",
+  qs:[
+   {id:"TR1",text:"Do you exchange signed trade documents electronically (e.g. electronic bills of lading, customs declarations, EDI)?",
+    opts:[["No",0],["Yes, without signatures",1],["Yes, digitally signed",2]],
+    why:"Trade documents carry legal weight for years; forged signatures would be serious.",action:"Identify signed document flows and track platform post-quantum plans."},
+   {id:"TR2",text:"How many external partners connect to your systems (carriers, ports, forwarders, customs)?",
+    opts:[["Fewer than 20",0],["20 to 100",1],["More than 100",2]],
+    why:"Every partner connection needs coordinated change.",action:"Group partners by connection type and plan coordinated upgrades."}
+  ]},
+ {id:"ind_gov",when:{industry:["gov"]},industry:true,title:"Government and public sector",intro:"Public-sector data and integrations follow GovTech and CSA direction.",
+  qs:[
+   {id:"GV_1",text:"Do you handle classified or long-term sensitive government data?",
+    opts:[["No",0],["Some",2],["Yes",3]],
+    why:"Long-term secrecy requirements make 'harvest now, decrypt later' the main risk.",action:"Treat systems holding this data as first in line for migration."},
+   {id:"GV_2",text:"Are you following GovTech and IMDA initiatives (e.g. the National Quantum-Safe Network Plus)?",
+    opts:[["Yes",0],["No",2]],
+    why:"Government integrations will move on a coordinated timeline.",action:"Assign someone to track GovTech, IMDA and CSA quantum-safe guidance."}
+  ]},
+ {id:"ind_tech",when:{industry:["tech"]},industry:true,title:"Technology and SaaS",intro:"Your customers will soon ask you about this in security reviews.",
+  qs:[
+   {id:"SA1",text:"Do enterprise customers ask about your post-quantum roadmap?",
+    opts:[["Yes, and we have an answer",0],["Not yet",1],["Yes, and we have no answer",3]],
+    why:"Post-quantum questions are appearing in security questionnaires and RFPs.",action:"Publish a short post-quantum roadmap statement for customers."},
+   {id:"SA2",text:"Do you offer SSO, SAML or OIDC, or sign webhooks and tokens for customers?",
+    opts:[["No",0],["Yes, with HMAC",1],["Yes, with RSA or ECC",2]],
+    why:"Customer integrations depend on your signing algorithms.",action:"Plan algorithm negotiation so customers can move to post-quantum signatures gradually."},
+   {id:"SA3",text:"Are tenant data keys managed separately per tenant in a KMS?",
+    opts:[["Yes",0],["Shared keys",2]],
+    why:"Per-tenant key management makes re-keying and migration far easier.",action:"Move to per-tenant keys in a managed KMS."}
+  ]}
+];
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const KEY = "qra-state-v1";
+function blank(){
+  return {profile:{org:"",date:new Date().toISOString().slice(0,10),assessor:"",people:"",industry:"",cii:"",mas:"",size:"",footprint:[]},
+          a:{}, b:{}, z:9, view:"profile"};
+}
+let state = load();
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.profile) return Object.assign(blank(), s); }catch(e){}
+  return blank();
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+function matches(when){
+  if(!when) return true;
+  if(Array.isArray(when)) return when.some(matches);
+  const p = state.profile;
+  for(const k in when){
+    if(k==="industry" && !when.industry.includes(p.industry)) return false;
+    if(k==="footprint" && !p.footprint.includes(when.footprint)) return false;
+    if(k==="cii" && p.cii!==when.cii) return false;
+  }
+  return true;
+}
+const visibleSections = () => PART_B.filter(s=>matches(s.when));
+const visibleQs = s => s.qs.filter(q=>matches(q.when));
+
+/* =====================================================================
+   NAV
+   ===================================================================== */
+const DOMAINS = [...new Set(PART_A.map(o=>o.domain))];
+function views(){
+  const v = [{id:"profile",label:"Company profile",group:"Start"}];
+  DOMAINS.forEach(d=>v.push({id:"A:"+d,label:d,group:"Part A · Leadership"}));
+  visibleSections().forEach(s=>v.push({id:"B:"+s.id,label:s.title,group:"Part B · Technical exposure",tag:s.industry?"industry":s.branch?"branch":""}));
+  v.push({id:"results",label:"Results",group:"Report"});
+  return v;
+}
+function progress(id){
+  if(id.startsWith("A:")){
+    const objs = PART_A.filter(o=>"A:"+o.domain===id);
+    return objs.filter(o=>state.a[o.id] && state.a[o.id].level!==undefined).length+"/"+objs.length;
+  }
+  if(id.startsWith("B:")){
+    const s = PART_B.find(x=>"B:"+x.id===id); const qs = visibleQs(s);
+    return qs.filter(q=>answeredB(q)).length+"/"+qs.length;
+  }
+  return "";
+}
+function answeredB(q){ const r=state.b[q.id]; return r && (q.type==="text" ? !!(r.text||"").trim() : r.v!==undefined); }
+
+function renderNav(){
+  const nav = document.getElementById("nav"); let html=""; let g="";
+  views().forEach(v=>{
+    if(v.group!==g){ g=v.group; html+=`<h4>${g}</h4>`; }
+    html+=`<a href="#" data-view="${v.id}" class="${state.view===v.id?"active":""}"><span>${esc(v.label)}${v.tag?`<span class="tag">${v.tag}</span>`:""}</span><span class="cnt">${progress(v.id)}</span></a>`;
+  });
+  nav.innerHTML = html;
+  document.getElementById("orgLabel").textContent = state.profile.org ? state.profile.org+(state.profile.date?" · "+state.profile.date:"") : "New assessment";
+}
+document.getElementById("nav").addEventListener("click",e=>{
+  const a=e.target.closest("a[data-view]"); if(!a) return; e.preventDefault(); go(a.dataset.view);
+});
+function go(id){ state.view=id; save(); render(); window.scrollTo(0,0); }
+
+/* =====================================================================
+   VIEWS
+   ===================================================================== */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function pager(){
+  const v = views(); const i = v.findIndex(x=>x.id===state.view);
+  const prev = v[i-1], next = v[i+1];
+  return `<div class="pager">${prev?`<button class="btn" data-go="${prev.id}">← ${esc(prev.label)}</button>`:"<span></span>"}${next?`<button class="btn primary" data-go="${next.id}">${esc(next.label)} →</button>`:""}</div>`;
+}
+
+function renderProfile(){
+  const p = state.profile;
+  const opt = (arr,val)=>arr.map(([v,l])=>`<option value="${v}" ${val===v?"selected":""}>${esc(l)}</option>`).join("");
+  return `<h1>Company profile</h1>
+  <p class="lede">These answers decide which questions appear. Industry adds a sector module; each technology ticked adds a short branch.</p>
+  <div class="card">
+   <div class="grid2">
+    <div class="field"><label for="f_org">Organisation</label><input type="text" id="f_org" data-p="org" value="${esc(p.org)}"></div>
+    <div class="field"><label for="f_date">Date</label><input type="date" id="f_date" data-p="date" value="${esc(p.date)}"></div>
+    <div class="field"><label for="f_assessor">Assessor</label><input type="text" id="f_assessor" data-p="assessor" value="${esc(p.assessor)}"></div>
+    <div class="field"><label for="f_people">People interviewed</label><input type="text" id="f_people" data-p="people" value="${esc(p.people)}" placeholder="e.g. CISO, Head of Infrastructure"></div>
+   </div>
+  </div>
+  <div class="card">
+   <div class="grid2">
+    <div class="field"><label for="f_ind">Industry</label><select id="f_ind" data-p="industry"><option value="">Select…</option>${INDUSTRIES.map(([v,l])=>`<option value="${v}" ${p.industry===v?"selected":""}>${esc(l)}</option>`).join("")}</select><span class="hint">${esc((INDUSTRIES.find(i=>i[0]===p.industry)||[])[2]||"")}</span></div>
+    <div class="field"><label for="f_size">Size (employees)</label><select id="f_size" data-p="size"><option value="">Select…</option>${opt([["s","Under 200"],["m","200 to 1,000"],["l","1,000 to 5,000"],["xl","More than 5,000"]],p.size)}</select></div>
+    <div class="field"><label for="f_cii">Designated Critical Information Infrastructure (CII) owner?</label><select id="f_cii" data-p="cii"><option value="">Select…</option>${opt([["yes","Yes"],["no","No"],["unsure","Not sure"]],p.cii)}</select></div>
+    <div class="field"><label for="f_mas">Regulated by MAS?</label><select id="f_mas" data-p="mas"><option value="">Select…</option>${opt([["yes","Yes"],["no","No"]],p.mas)}</select><span class="hint">Shows MAS references in Part A.</span></div>
+   </div>
+  </div>
+  <div class="card">
+   <div class="field" style="margin:0"><label>Technology footprint</label><span class="hint">Tick everything that applies. Each adds follow-up questions.</span></div>
+   <div class="checks" style="margin-top:10px">
+    ${FOOTPRINT.map(([v,l,h])=>`<label class="check ${p.footprint.includes(v)?"on":""}"><input type="checkbox" data-fp="${v}" ${p.footprint.includes(v)?"checked":""}><span>${esc(l)}${h?`<small>${esc(h)}</small>`:""}</span></label>`).join("")}
+   </div>
+  </div>
+  <div class="callout small">Questions in this assessment: <b>${countQuestions()}</b>. Part A has 10 leadership objectives; Part B adapts to the profile above.</div>
+  ${pager()}`;
+}
+function countQuestions(){ return PART_A.length + visibleSections().reduce((n,s)=>n+visibleQs(s).length,0); }
+
+function renderDomain(domain){
+  const objs = PART_A.filter(o=>o.domain===domain);
+  const showMas = state.profile.mas==="yes" || state.profile.industry==="fs";
+  return `<h1>${esc(domain)}</h1>
+  <p class="lede">Part A follows the objectives of CSA's Quantum Readiness Index. Ask the prompts, then choose the level that best matches the answers.</p>
+  ${objs.map(o=>{
+    const r = state.a[o.id]||{};
+    return `<div class="card ${r.level!==undefined?"answered":""}" data-a="${o.id}">
+      <div class="qhead"><p class="qtext">${esc(o.title)}</p><span class="qid">${o.id}</span></div>
+      <div class="chips">${o.nr?`<span class="chip nr">No-regrets</span>`:""}${showMas?`<span class="chip mas">${esc(o.mas)}</span>`:""}</div>
+      <ul class="prompts">${o.prompts.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+      <div class="opts">${o.levels.map((d,i)=>`<button class="opt" data-a-level="${i}" aria-pressed="${r.level===i}"><span class="dot"></span><span><b>${LEVEL_NAMES[i]}</b><small>${esc(d)}</small></span></button>`).join("")}</div>
+      <div class="guide"><b>Why it matters:</b> ${esc(o.why)}</div>
+      <textarea class="notes" data-a-notes="${o.id}" placeholder="Notes and evidence">${esc(r.notes||"")}</textarea>
+    </div>`;}).join("")}
+  ${pager()}`;
+}
+
+function renderSection(sid){
+  const s = PART_B.find(x=>x.id===sid);
+  return `<h1>${esc(s.title)}</h1><p class="lede">${esc(s.intro)}</p>
+  ${visibleQs(s).map(q=>{
+    const r = state.b[q.id]||{};
+    const body = q.type==="text"
+      ? `<textarea class="notes" data-b-text="${q.id}" placeholder="Answer">${esc(r.text||"")}</textarea>`
+      : `<div class="opts">${q.opts.map(([l],i)=>`<button class="opt" data-b-opt="${i}" aria-pressed="${r.v===i}"><span class="dot"></span><span>${esc(l)}</span></button>`).join("")}
+         <button class="opt unk" data-b-opt="${U}" aria-pressed="${r.v===U}"><span class="dot"></span><span>Don't know<small>Flags this for technical discovery</small></span></button></div>
+         <textarea class="notes" data-b-notes="${q.id}" placeholder="Notes and evidence">${esc(r.notes||"")}</textarea>`;
+    return `<div class="card ${answeredB(q)?"answered":""}" data-b="${q.id}">
+      <div class="qhead"><p class="qtext">${esc(q.text)}</p><span class="qid">${q.id}</span></div>
+      ${body}
+      <div class="guide"><b>Why we ask:</b> ${esc(q.why)}${q.action?`<br><b>If exposed:</b> ${esc(q.action)}`:""}</div>
+    </div>`;}).join("")}
+  ${pager()}`;
+}
+
+/* =====================================================================
+   SCORING
+   ===================================================================== */
+function riskOf(q){
+  const r = state.b[q.id]; if(!r || r.v===undefined || q.type==="text") return null;
+  if(r.v===U) return {risk:2, unk:true, label:"Don't know"};
+  return {risk:q.opts[r.v][1], unk:false, label:q.opts[r.v][0]};
+}
+function riskBand(avg){ if(avg===null) return ["na","Not assessed"]; if(avg<0.75) return ["low","Low"]; if(avg<1.75) return ["med","Medium"]; return ["high","High"]; }
+
+function compute(){
+  const objs = PART_A.map(o=>({o, level: state.a[o.id] ? state.a[o.id].level : undefined}));
+  const rated = objs.filter(x=>x.level!==undefined);
+  const avgA = rated.length ? rated.reduce((n,x)=>n+x.level,0)/rated.length : null;
+  const sections = visibleSections().map(s=>{
+    const rs = visibleQs(s).map(q=>({q, r:riskOf(q)})).filter(x=>x.r);
+    const avg = rs.length ? rs.reduce((n,x)=>n+x.r.risk,0)/rs.length : null;
+    return {s, rs, avg, total:visibleQs(s).filter(q=>q.type!=="text").length, unk:rs.filter(x=>x.r.unk).length};
+  });
+  const all = sections.flatMap(x=>x.rs.map(y=>Object.assign({s:x.s},y)));
+  const avgB = all.length ? all.reduce((n,x)=>n+x.r.risk,0)/all.length : null;
+  const findings = all.filter(x=>x.r.risk>=2 && !x.r.unk).sort((a,b)=>b.r.risk-a.r.risk);
+  const unknowns = all.filter(x=>x.r.unk);
+  return {objs, avgA, sections, avgB, findings, unknowns, answered:all.length};
+}
+
+function moscaInputs(){
+  const d1 = state.b.D1, g4 = state.b.G4;
+  const X=[2,5,10,15], Y=[2,4,7,10];
+  const x = d1 && d1.v!==undefined && d1.v!==U ? X[d1.v] : null;
+  const y = g4 && g4.v!==undefined && g4.v!==U ? Y[g4.v] : null;
+  return {x,y};
+}
+
+function renderResults(){
+  const c = compute(); const p = state.profile;
+  const [bCls,bLbl] = riskBand(c.avgB);
+  const aLvl = c.avgA===null ? "–" : "L"+(Math.round(c.avgA*10)/10);
+  const {x,y} = moscaInputs(); const z = state.z;
+  let mosca = `<p class="muted small">Answer D1 (data lifespan) and G4 (migration time) to see this.</p>`;
+  if(x!==null && y!==null){
+    const max = Math.max(x+y, z)+2; const pct = v=>(v/max*100).toFixed(1)+"%";
+    const late = x+y>z;
+    mosca = `<div class="mosca">
+      <div class="row"><span class="lab">Data lifespan + migration</span><div class="track">
+        <div class="seg" style="left:0;width:${pct(y)};background:var(--accent)">migrate ${y}y</div>
+        <div class="seg" style="left:${pct(y)};width:${pct(x)};background:var(--warn)">data ${x}y</div>
+        <div class="zline" style="left:${pct(z)}"></div></div></div>
+      <div class="row noprint"><span class="lab">Years until a quantum computer can break RSA (assumption)</span><div style="flex:1"><input type="range" min="3" max="20" value="${z}" id="zRange"></div><b style="width:40px">${z}y</b></div>
+      <p class="small" style="margin:6px 0 0">${late?`<span class="risk high">Exposed now</span> Data captured today could still be sensitive when it can be decrypted (${x+y} years needed vs ${z} assumed).`:`<span class="risk low">Within margin</span> ${x+y} years needed vs ${z} assumed, but the margin depends on an uncertain date.`}</p>
+      <p class="muted small" style="margin:6px 0 0">Nobody knows the date. NIST plans to deprecate RSA/ECC in 2030 and disallow them in 2035. Data lifespan and migration time are estimated from answers D1 and G4.</p></div>`;
+  }
+  const domainRows = DOMAINS.map(d=>{
+    const os = c.objs.filter(x=>x.o.domain===d);
+    return os.map((x,i)=>`<tr>${i===0?`<td rowspan="${os.length}"><b>${esc(d)}</b></td>`:""}
+      <td>${esc(x.o.title)}${x.o.nr?` <span class="chip nr">No-regrets</span>`:""}</td>
+      <td>${x.level===undefined?`<span class="lvl na">–</span>`:`<span class="lvl l${x.level}">L${x.level}</span>`}</td>
+      <td class="small">${x.level===undefined?"<span class='muted'>Not rated</span>":esc(x.o.next[x.level])}</td></tr>`).join("");
+  }).join("");
+  const secRows = c.sections.map(x=>{ const [cl,lb]=riskBand(x.avg);
+    return `<tr><td>${esc(x.s.title)}${x.s.industry?` <span class="chip">industry</span>`:x.s.branch?` <span class="chip">branch</span>`:""}</td>
+      <td><span class="risk ${cl}">${lb}</span></td><td class="small">${x.rs.length}/${x.total} answered${x.unk?` · <span style="color:var(--unk)">${x.unk} unknown</span>`:""}</td>
+      <td><div class="bar"><i style="width:${x.avg===null?0:(x.avg/3*100)}%;background:var(--${cl==="high"?"bad":cl==="med"?"warn":"good"})"></i></div></td></tr>`;}).join("");
+  const top = c.findings.slice(0,12).map(x=>`<div class="finding ${x.r.risk===2?"med":""}"><div class="meta">${esc(x.s.title)} · ${x.q.id} · answer: ${esc(x.r.label)}</div><div><b>${esc(x.q.text)}</b></div><div class="act">→ ${esc(x.q.action||"")}</div></div>`).join("") || `<p class="muted small">No high-exposure answers yet.</p>`;
+  const unk = c.unknowns.map(x=>`<div class="finding unk"><div class="meta">${esc(x.s.title)} · ${x.q.id}</div><div>${esc(x.q.text)}</div></div>`).join("") || `<p class="muted small">None.</p>`;
+  return `<h1>Results${p.org?" · "+esc(p.org):""}</h1>
+  <p class="lede">${esc(p.date||"")}${p.people?" · Interviewed: "+esc(p.people):""}${p.assessor?" · Assessor: "+esc(p.assessor):""}</p>
+  <div class="kpis">
+    <div class="kpi"><div class="l">Leadership readiness (Part A)</div><div class="v">${aLvl}</div><div class="s">Average across ${c.objs.filter(x=>x.level!==undefined).length}/10 objectives, scale L0–L3</div></div>
+    <div class="kpi"><div class="l">Technical exposure (Part B)</div><div class="v"><span class="risk ${bCls}" style="font-size:18px">${bLbl}</span></div><div class="s">${c.answered} answers · ${c.findings.length} exposed areas</div></div>
+    <div class="kpi"><div class="l">Discovery needed</div><div class="v" style="color:var(--unk)">${c.unknowns.length}</div><div class="s">"Don't know" answers to verify with scans or evidence</div></div>
+  </div>
+  <h2>Is this urgent? (Mosca's inequality)</h2>
+  <div class="card">${mosca}</div>
+  <h2>Part A · Leadership readiness</h2>
+  <div class="card" style="overflow-x:auto"><table><thead><tr><th>Domain</th><th>Objective</th><th>Level</th><th>Next step</th></tr></thead><tbody>${domainRows}</tbody></table></div>
+  <h2>Part B · Technical exposure by area</h2>
+  <div class="card" style="overflow-x:auto"><table><thead><tr><th>Area</th><th>Exposure</th><th>Coverage</th><th></th></tr></thead><tbody>${secRows}</tbody></table></div>
+  <h2>Priority findings</h2>${top}
+  <h2>Needs technical discovery</h2>${unk}
+  <div class="foot">Part A is structured on the objectives and levels of the Cyber Security Agency of Singapore's Quantum Readiness Index (V1, July 2026); wording is paraphrased. This is an independent assessment tool, not an official CSA or MAS product. Scores are indicative and based on interview answers.</div>
+  ${pager()}`;
+}
+
+/* =====================================================================
+   RENDER + EVENTS
+   ===================================================================== */
+function render(){
+  if(!views().some(v=>v.id===state.view)) state.view="profile";
+  renderNav();
+  const m = document.getElementById("main"); const v = state.view;
+  if(v==="profile") m.innerHTML = renderProfile();
+  else if(v.startsWith("A:")) m.innerHTML = renderDomain(v.slice(2));
+  else if(v.startsWith("B:")) m.innerHTML = renderSection(v.slice(2));
+  else m.innerHTML = renderResults();
+}
+
+const main = document.getElementById("main");
+main.addEventListener("click",e=>{
+  const g = e.target.closest("[data-go]"); if(g){ go(g.dataset.go); return; }
+  const al = e.target.closest("[data-a-level]");
+  if(al){ const card=al.closest("[data-a]"); const id=card.dataset.a; const lv=+al.dataset.aLevel;
+    state.a[id]=Object.assign(state.a[id]||{}, {level: (state.a[id]&&state.a[id].level===lv)?undefined:lv});
+    if(state.a[id].level===undefined) delete state.a[id].level;
+    card.querySelectorAll("[data-a-level]").forEach(b=>b.setAttribute("aria-pressed", String(+b.dataset.aLevel===state.a[id].level)));
+    card.classList.toggle("answered", state.a[id].level!==undefined); save(); renderNav(); return; }
+  const bo = e.target.closest("[data-b-opt]");
+  if(bo){ const card=bo.closest("[data-b]"); const id=card.dataset.b; const raw=bo.dataset.bOpt; const val= raw===U?U:+raw;
+    const cur = state.b[id]||{}; cur.v = cur.v===val ? undefined : val; if(cur.v===undefined) delete cur.v; state.b[id]=cur;
+    card.querySelectorAll("[data-b-opt]").forEach(b=>{ const bv=b.dataset.bOpt===U?U:+b.dataset.bOpt; b.setAttribute("aria-pressed", String(bv===cur.v)); });
+    card.classList.toggle("answered", cur.v!==undefined); save(); renderNav(); return; }
+});
+main.addEventListener("input",e=>{
+  const t = e.target;
+  if(t.dataset.p){ state.profile[t.dataset.p]=t.value;
+    if(t.dataset.p==="industry" && t.value==="fs" && !state.profile.mas) state.profile.mas="yes";
+    save(); if(t.tagName==="SELECT") render(); else renderNav(); return; }
+  if(t.dataset.fp){ const f=state.profile.footprint; const v=t.dataset.fp;
+    state.profile.footprint = t.checked ? [...new Set([...f,v])] : f.filter(x=>x!==v); save(); render(); return; }
+  if(t.dataset.aNotes){ const id=t.dataset.aNotes; state.a[id]=Object.assign(state.a[id]||{}, {notes:t.value}); save(); return; }
+  if(t.dataset.bNotes){ const id=t.dataset.bNotes; state.b[id]=Object.assign(state.b[id]||{}, {notes:t.value}); save(); return; }
+  if(t.dataset.bText){ const id=t.dataset.bText; state.b[id]=Object.assign(state.b[id]||{}, {text:t.value}); save(); renderNav(); return; }
+});
+main.addEventListener("change",e=>{
+  if(e.target.id==="zRange"){ state.z=+e.target.value; save(); render(); }
+});
+
+const guideToggle = document.getElementById("guideToggle");
+try{ guideToggle.checked = localStorage.getItem("qra-guide")==="1"; }catch(e){}
+document.body.classList.toggle("show-guide", guideToggle.checked);
+guideToggle.addEventListener("change",()=>{ document.body.classList.toggle("show-guide", guideToggle.checked); try{localStorage.setItem("qra-guide", guideToggle.checked?"1":"0");}catch(e){} });
+
+/* In-page panels replace alert/confirm, which hosted viewers block. */
+const modal = document.getElementById("modal"), modalBox = document.getElementById("modalBox");
+function openModal(html){ modalBox.innerHTML = html; modal.classList.remove("hide"); const f=modalBox.querySelector("button,textarea"); if(f) f.focus(); }
+function closeModal(){ modal.classList.add("hide"); modalBox.innerHTML=""; }
+modal.addEventListener("click",e=>{ if(e.target===modal || e.target.closest("[data-close]")) closeModal(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !modal.classList.contains("hide")) closeModal(); });
+function setMsg(text, err){ const m=modalBox.querySelector(".msg"); if(m){ m.textContent=text; m.classList.toggle("err", !!err); } }
+
+const exportJSON = ()=>JSON.stringify(Object.assign({format:"qra-v1"}, state),null,2);
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  openModal(`<h3>Save this assessment</h3>
+    <p>Answers stay only in this browser. To keep them, ${framed?"copy the data and paste it into a note or a .json file":"download a file, or copy the data and paste it somewhere safe"}. Use Open to load it again later.</p>
+    <textarea id="exportText" readonly>${esc(exportJSON())}</textarea>
+    <div class="msg"></div>
+    <div class="row"><button class="btn" data-close>Close</button><button class="btn ${framed?"primary":""}" id="copyData">Copy data</button>${framed?"":`<button class="btn primary" id="downloadData">Download file</button>`}</div>`);
+  document.getElementById("copyData").addEventListener("click",()=>{
+    const ta=document.getElementById("exportText");
+    const fallback=()=>{ ta.focus(); ta.select(); setMsg("Selected. Press Ctrl+C or Cmd+C to copy."); };
+    try{ navigator.clipboard.writeText(ta.value).then(()=>setMsg("Copied."), fallback); }catch(e){ fallback(); }
+  });
+  if(!framed) document.getElementById("downloadData").addEventListener("click",()=>{
+    const name = (state.profile.org||"assessment").replace(/[^a-z0-9]+/gi,"-").toLowerCase();
+    const a = document.createElement("a"); a.href=URL.createObjectURL(new Blob([exportJSON()],{type:"application/json"}));
+    a.download=`qra-${name}-${state.profile.date||"undated"}.json`; document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);
+    setMsg("If no file appeared, this viewer blocks downloads. Use Copy data instead.");
+  });
+});
+
+function loadText(text){
+  try{ const s=JSON.parse(text); if(!s || !s.profile) throw 0; delete s.format; state=Object.assign(blank(), s); save(); render(); closeModal(); }
+  catch(err){ setMsg("That is not a saved assessment. Paste the full text from Save, or choose a .json file saved earlier.", true); }
+}
+document.getElementById("importBtn").addEventListener("click",()=>{
+  openModal(`<h3>Open a saved assessment</h3>
+    <p>Choose a file you downloaded, or paste the data you copied. This replaces the answers currently on screen.</p>
+    <textarea id="importText" placeholder="Paste saved data here"></textarea>
+    <div class="msg"></div>
+    <div class="row"><button class="btn" data-close>Cancel</button><button class="btn" id="chooseFile">Choose file</button><button class="btn primary" id="loadPasted">Load pasted data</button></div>`);
+  document.getElementById("chooseFile").addEventListener("click",()=>document.getElementById("importFile").click());
+  document.getElementById("loadPasted").addEventListener("click",()=>loadText(document.getElementById("importText").value));
+});
+document.getElementById("importFile").addEventListener("change",e=>{
+  const f = e.target.files[0]; if(!f) return; const rd = new FileReader();
+  rd.onload = ()=>loadText(rd.result); rd.readAsText(f); e.target.value="";
+});
+
+/* Print works when the file is opened directly; framed viewers block it. */
+const framed = (()=>{ try{ return window.self!==window.top; }catch(e){ return true; } })();
+const printBtn = document.getElementById("printBtn");
+if(framed) printBtn.classList.add("hide");
+printBtn.addEventListener("click",()=>{ go("results"); setTimeout(()=>window.print(),100); });
+
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  openModal(`<h3>Start a new assessment?</h3>
+    <p>This clears the answers in this browser. Use Save first if you want to keep them.</p>
+    <div class="row"><button class="btn" data-close>Cancel</button><button class="btn primary" id="confirmNew">Start new</button></div>`);
+  document.getElementById("confirmNew").addEventListener("click",()=>{ state=blank(); save(); render(); closeModal(); });
+});
+
+render();
+</script>
+</body>
+</html>
